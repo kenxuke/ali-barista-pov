@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew & Send | Multi-Order Coffee</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init("jxeeo0a_xFWGAzHFX"); // EmailJS Init
+       })();
+    </script>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>☕ Quick Brew</h1>
+            <div id="cart-count">Items in tray: 0</div>
+        </header>
+
+        <div class="temp-selection">
+            <label>1. Pick Temperature First</label>
+            <div class="temp-toggle">
+                <button type="button" class="temp-btn" data-temp="Hot">☀️ Hot</button>
+                <button type="button" class="temp-btn" data-temp="Iced">❄️ Iced</button>
+            </div>
+        </div>
+
+        <div class="coffee-grid" id="coffee-options">
+            <div class="coffee-card disabled" data-value="Americano" data-price="1">
+                <div class="icon">☕</div>
+                <h3>Americano</h3>
+                <p>12g Double shot Espresso With Hot Water</p>
+                <span class="price-tag">1 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Spanish Latte" data-price="3">
+                <div class="icon">🍯</div>
+                <h3>Spanish Latte</h3>
+                <p>20g Condensed Milk with Double Shot Espresso</p>
+                <span class="price-tag">3 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Cappuccino" data-price="3">
+                <div class="icon">☁️</div>
+                <h3>Cappuccino</h3>
+                <p>1 10g Batangas Tablea with Double Shot Espresso</p>
+                <span class="price-tag">3 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Latte" data-price="1">
+                <div class="icon">🥛</div>
+                <h3>Latte</h3>
+                <p>12g Espresso Shot with Milk</p>
+                <span class="price-tag">1 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Caramel Macchiato" data-price="3">
+                <div class="icon">🍮</div>
+                <h3>Caramel Macchiato</h3>
+                <p>Double Shot Espresso with Milk and Caramel Syrup</p>
+                <span class="price-tag">3 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Biscoff Latte" data-price="5">
+                <div class="icon">🍪</div>
+                <h3>Biscoff Latte</h3>
+                <p>Lotus Biscoff with Milk and Double Shot Espresso</p>
+                <span class="price-tag">5 💋</span>
+            </div>
+
+            <div class="coffee-card disabled" data-value="Oat Latte" data-price="3">
+                <div class="icon">🌾</div>
+                <h3>Oat Latte</h3>
+                <p>Double Shot Espresso with Oat-side Milk</p>
+                <span class="price-tag">3 💋</span>
+            </div>
+        </div>
+
+        <div class="order-slip" id="order-slip">
+            <div class="slip-header">ORDER SUMMARY</div>
+            <div id="slip-items">
+                <div class="empty-msg">Your tray is empty</div>
+            </div>
+            <button id="clear-btn">Clear All</button>
+        </div>
+
+        <div class="input-group">
+            <label for="custom-notes">General Instructions</label>
+            <textarea id="custom-notes" placeholder="e.g. Iced pero walang yelo"></textarea>
+        </div>
+
+        <button id="order-btn">Send Order</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
