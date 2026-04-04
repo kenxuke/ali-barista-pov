@@ -18,14 +18,49 @@ const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get('id');       
 const batchId = urlParams.get('batch');    
 
+// --- NEW: NOTIFICATION TRACKING ---
+let lastNotifiedStatus = ""; 
+
 if (!orderId && !batchId) {
     document.getElementById('status-text').innerText = "Order Not Found";
     document.getElementById('status-desc').innerText = "No Order ID detected.";
 } else {
     document.getElementById('order-id-display').innerText = orderId ? `Order: ${orderId.slice(-4)}` : `Batch: ${batchId.slice(-4)}`;
     
-    // Start by checking live orders
+    // --- NEW: REQUEST PERMISSION ON LOAD ---
+    requestNotificationPermission();
+
     checkLiveOrders();
+}
+
+// --- NEW: PERMISSION FUNCTION ---
+async function requestNotificationPermission() {
+    if ("Notification" in window) {
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            await Notification.requestPermission();
+        }
+    }
+}
+
+// --- NEW: TRIGGER NOTIFICATION ---
+function notifyUser(status) {
+    // Only notify if status changed to Ready and hasn't been notified yet
+    if (status === "Ready" && lastNotifiedStatus !== "Ready") {
+        if (Notification.permission === "granted") {
+            new Notification("Cloud Nine Coffee ☕", {
+                body: "Your order is ready for pickup! ✨",
+                icon: "assets/logo.png" // Update with your actual logo path
+            });
+            
+            // Optional: Play a sound
+            const audio = new Audio('assets/ready-chime.mp3');
+            audio.play().catch(e => console.log("Audio play blocked until user interacts."));
+        } else {
+            // Fallback for no permissions
+            alert("✨ Your coffee is ready for pickup!");
+        }
+    }
+    lastNotifiedStatus = status;
 }
 
 function checkLiveOrders() {
@@ -45,7 +80,6 @@ function checkLiveOrders() {
         if (myItems.length > 0) {
             processBatchStatus(myItems);
         } else {
-            // If not found in live orders, check the archive (completedOrders)
             checkArchive();
         }
     });
@@ -81,7 +115,6 @@ function showArchivedUI(items) {
     document.getElementById('progress-bar').style.width = "100%";
     document.getElementById('main-icon').innerText = "✨";
     
-    // Feedback button container hidden
     document.getElementById('ready-actions').style.display = "none";
 
     listContainer.innerHTML = "<strong>Order Summary:</strong><br>";
@@ -121,6 +154,9 @@ function processBatchStatus(items) {
         (weights[prev.status] < weights[curr.status]) ? prev : curr
     );
 
+    // --- TRIGGER NOTIFICATION CHECK ---
+    notifyUser(lowestStatusItem.status);
+
     updateOverallUI(lowestStatusItem.status, avgWeight);
 }
 
@@ -139,8 +175,6 @@ function updateOverallUI(status, avgWeight) {
         icon.innerText = "✨";
         desc.innerText = "Everything is ready for pickup!";
         receiptBtn.style.display = "block";
-        
-        // Hide the feedback section
         document.getElementById('ready-actions').style.display = "none";
 
         receiptBtn.onclick = () => {
