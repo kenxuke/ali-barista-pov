@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const BARISTA_PASSWORD = "AliBarista2026"; 
+const BARISTA_PASSWORD = "1234"; 
 let isHistoryView = false;
 let activeOrdersData = {};
 let completedOrdersData = {};
@@ -28,6 +28,31 @@ const customConfirm = (title, message, isAlert = false) => {
         yesBtn.onclick = () => handleResponse(true);
         noBtn.onclick = () => handleResponse(false);
     });
+};
+
+// --- ORDER DETAIL MODAL LOGIC ---
+window.showOrderDetails = (nodeId, isFromHistory = false) => {
+    const source = isFromHistory ? completedOrdersData : activeOrdersData;
+    const order = source[nodeId];
+    if (!order) return;
+
+    const fullId = order.id || order.order_id || nodeId;
+    
+    document.getElementById('detail-id').innerText = `#${fullId.slice(-4)}`;
+    document.getElementById('detail-items-list').innerText = order.details || "No items listed";
+    document.getElementById('detail-notes').innerText = order.notes || "No special instructions provided.";
+    document.getElementById('detail-time').innerText = isFromHistory ? (order.completedAt || 'N/A') : (order.timestamp || 'Just now');
+    
+    const statusEl = document.getElementById('detail-status');
+    const statusText = isFromHistory ? "COMPLETED" : (order.status || "Received");
+    statusEl.innerText = statusText;
+    statusEl.className = `badge status-${statusText.toLowerCase()}`;
+
+    document.getElementById('order-detail-modal').style.display = 'flex';
+};
+
+window.closeDetailModal = () => {
+    document.getElementById('order-detail-modal').style.display = 'none';
 };
 
 // --- CHART INITIALIZATION ---
@@ -121,13 +146,23 @@ window.toggleView = () => {
     }
 };
 
+/** * UPDATED: updateStat
+ * This triggers the status change in Firebase. 
+ * When 'Ready' is passed, the customer's status.js will trigger the alert.
+ */
 window.updateStat = (nodeId, newStatus) => {
-    update(ref(db, `orders/${nodeId}`), { status: newStatus });
+    update(ref(db, `orders/${nodeId}`), { 
+        status: newStatus,
+        statusUpdatedAt: new Date().toISOString() 
+    });
 };
 
 window.archiveOrder = (nodeId) => {
     const orderData = activeOrdersData[nodeId];
     orderData.completedAt = new Date().toLocaleString();
+    // Ensure final status is recorded as Ready before archiving
+    orderData.status = "Ready"; 
+    
     push(ref(db, 'completedOrders'), orderData).then(() => {
         remove(ref(db, `orders/${nodeId}`));
     });
@@ -210,7 +245,6 @@ function updateStats() {
     document.getElementById('ready-count').innerText = ready;
     document.getElementById('completed-count').innerText = completed;
 
-    // Avg Rating Calculation
     const fbArray = Object.values(allFeedbacksData);
     const avgDisplay = document.getElementById('avg-rating');
     const starRow = document.getElementById('rating-stars');
@@ -228,8 +262,6 @@ function updateStats() {
     starRow.innerText = "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
 }
 
-// --- UPDATED UI RENDERING WITH CORRECT ID PRIORITY ---
-
 function renderFeedbackUI() {
     const latestContainer = document.getElementById('latest-feedback-display');
     const historyList = document.getElementById('feedback-history-rail');
@@ -240,17 +272,16 @@ function renderFeedbackUI() {
 
     if (feedbackArray.length > 0) {
         const latest = feedbackArray[0];
-        // Priority: Use targetId (which should be the ORD-... string)
         const displayId = latest.targetId ? latest.targetId.slice(-4) : "???";
         
         latestContainer.innerHTML = `
-            <div style="padding: 15px; background: #fdfaf8; border-radius: 10px; border-left: 4px solid #6f4e37;">
-                <div style="display:flex; justify-content:space-between;">
+            <div class="latest-feedback-card">
+                <div class="fb-header">
                     <strong>${"⭐".repeat(latest.rating)}</strong>
-                    <small style="color:#999;">${latest.timestamp}</small>
+                    <small>${latest.timestamp}</small>
                 </div>
-                <p style="margin:10px 0; color:#444;">"${latest.comment || 'No comment'}"</p>
-                <small style="color:#6f4e37; font-weight:bold;">Order: #${displayId}</small>
+                <p class="fb-comment">"${latest.comment || 'No comment'}"</p>
+                <div class="fb-footer">Order: #<span class="fb-id">${displayId}</span></div>
             </div>
         `;
     } else {
@@ -265,7 +296,7 @@ function renderFeedbackUI() {
         row.innerHTML = `
             <div class="order-id">${fb.timestamp}<br><strong>${"⭐".repeat(fb.rating)}</strong></div>
             <div class="order-info">${fb.comment || '<em>No comment</em>'}</div>
-            <div style="color:#6f4e37; font-weight:bold;">#${displayId}</div>
+            <div style="color:var(--accent-brown); font-weight:bold;">#${displayId}</div>
             <div style="text-align:right;">
                 <button class="mini-btn btn-delete" onclick="window.deleteFeedback('${fb.id}')">🗑️</button>
             </div>
@@ -283,16 +314,19 @@ function renderActiveUI() {
     }
     Object.keys(activeOrdersData).reverse().forEach(nodeId => {
         const order = activeOrdersData[nodeId];
-        // Priority: Use the internal ID (ORD-...) if it exists, else use the Firebase Key
         const displayId = (order.id || order.order_id || nodeId).slice(-4);
         const status = order.status || 'Received';
         
         const row = document.createElement('div');
         row.className = 'order-row';
+        row.onclick = (e) => {
+            if (e.target.tagName !== 'BUTTON') window.showOrderDetails(nodeId, false);
+        };
+        
         row.innerHTML = `
             <div class="order-id" title="${order.id || nodeId}">#${displayId}</div>
             <div class="order-info"><strong>${order.details}</strong><small>${order.notes || 'No notes'}</small></div>
-            <div><span class="badge status-${status.toLowerCase()}">${status}</span></div>
+            <div class="status-badge-container"><span class="badge status-${status.toLowerCase()}">${status}</span></div>
             <div class="btn-group">
                 <button class="mini-btn ${status==='Measuring'?'active':''}" onclick="window.updateStat('${nodeId}','Measuring')">MSR</button>
                 <button class="mini-btn ${status==='Brewing'?'active':''}" onclick="window.updateStat('${nodeId}','Brewing')">BRW</button>
@@ -314,16 +348,19 @@ function renderHistoryUI() {
     }
     Object.keys(completedOrdersData).reverse().forEach(nodeId => {
         const order = completedOrdersData[nodeId];
-        // Priority: Use the internal ID (ORD-...) if it exists, else use the Firebase Key
         const fullId = order.id || order.order_id || nodeId;
         const displayId = fullId.slice(-4);
         
         const row = document.createElement('div');
         row.className = 'order-row';
+        row.onclick = (e) => {
+            if (e.target.tagName !== 'BUTTON') window.showOrderDetails(nodeId, true);
+        };
+
         row.innerHTML = `
             <div class="order-id" title="${fullId}">#${displayId}</div>
             <div class="order-info"><strong>${order.details}</strong><small>Served: ${order.completedAt || 'N/A'}</small></div>
-            <div><span class="badge status-ready">DONE</span></div>
+            <div class="status-badge-container"><span class="badge status-ready">DONE</span></div>
             <div style="text-align:right;"><button class="mini-btn btn-delete" onclick="window.deleteOrder('${nodeId}', true)">🗑️</button></div>
         `;
         rail.appendChild(row);
