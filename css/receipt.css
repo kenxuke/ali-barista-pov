@@ -1,0 +1,64 @@
+.receipt-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.paper-receipt {
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    padding: 30px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+    position: relative;
+}
+
+/* The zig-zag bottom edge */
+.paper-receipt::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(-45deg, transparent 5px, #fdfdfd 5px), 
+                linear-gradient(45deg, transparent 5px, #fdfdfd 5px);
+    background-size: 10px 10px;
+}
+
+.receipt-line { 
+    border-bottom: 1px dashed #ccc; 
+    margin: 10px 0; 
+}
+
+.total-row { 
+    font-weight: bold; 
+    font-size: 1.2rem; 
+    text-align: right; 
+    margin-top: 15px; 
+}
+
+.back-btn {
+    margin-top: 40px;
+    display: inline-block;
+    padding: 12px 25px;
+    background: #6f4e37;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+}
+
+.ticket-number {
+    font-size: 2.2rem;
+    font-weight: 900;
+    display: block;
+    margin: 5px 0;
+    color: #6f4e37;
+}

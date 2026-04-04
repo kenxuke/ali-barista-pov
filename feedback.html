@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Your Coffee | Cloud Nine</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .feedback-container { 
+            padding: 40px 20px; 
+            text-align: center; 
+            max-width: 400px; 
+            margin: 50px auto; 
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        h1 { color: #6f4e37; margin-bottom: 10px; font-size: 1.8rem; }
+        .subtitle { color: #8d949e; margin-bottom: 30px; font-size: 0.9rem; }
+        
+        .star-group { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
+        .rating { 
+            font-size: 2.5rem; 
+            cursor: pointer; 
+            color: #eee; 
+            transition: transform 0.2s, color 0.2s; 
+        }
+        .rating:hover { transform: scale(1.2); }
+        .rating.active { color: #6f4e37; }
+        
+        textarea { 
+            width: 100%; 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border: 1px solid #eee; 
+            background: #fdfdfd;
+            font-family: inherit;
+            resize: none;
+            box-sizing: border-box;
+        }
+        textarea:focus { outline: 1px solid #6f4e37; background: #fff; }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: #6f4e37;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-bottom: 10px;
+        }
+        .auth-btn:active { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="feedback-container">
+        <div style="font-size: 3rem; margin-bottom: 10px;">☕</div>
+        <h1>How was it?</h1>
+        <p class="subtitle" id="target-display">We hope you enjoy your Cloud Nine coffee!</p>
+        
+        <div id="star-rating" class="star-group">
+            <span class="rating" data-value="1">★</span>
+            <span class="rating" data-value="2">★</span>
+            <span class="rating" data-value="3">★</span>
+            <span class="rating" data-value="4">★</span>
+            <span class="rating" data-value="5">★</span>
+        </div>
+        
+        <textarea id="feedback-text" rows="4" placeholder="Any thoughts on your drink?"></textarea>
+        <button id="submit-feedback" class="auth-btn">Send Feedback</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgfJDdnaQQ_FDb-E-cfeABjL9UN9HH4wE",
+            authDomain: "barista-pov.firebaseapp.com",
+            databaseURL: "https://barista-pov-default-rtdb.firebaseio.com",
+            projectId: "barista-pov",
+            storageBucket: "barista-pov.firebasestorage.app",
+            messagingSenderId: "663000204703",
+            appId: "1:663000204703:web:eebec17ee26058adc569aa"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // URL Parsing
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        const batchId = urlParams.get('batchId');
+        const targetId = orderId || batchId || "Walk-in";
+
+        if(orderId || batchId) {
+            document.getElementById('target-display').innerText = `Rating for Order #${(orderId || batchId).slice(-4)}`;
+        }
+
+        let selectedRating = 0;
+        const stars = document.querySelectorAll('.rating');
+
+        stars.forEach(star => {
+            star.onclick = () => {
+                selectedRating = parseInt(star.dataset.value);
+                stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+            };
+        });
+
+        document.getElementById('submit-feedback').onclick = () => {
+            if (selectedRating === 0) {
+                alert("Please select a star rating!");
+                return;
+            }
+            
+            const feedbackData = {
+                targetId: targetId,
+                rating: selectedRating,
+                comment: document.getElementById('feedback-text').value,
+                timestamp: new Date().toLocaleString(),
+                dateLabel: new Date().toISOString().split('T')[0]
+            };
+
+            push(ref(db, 'feedbacks'), feedbackData).then(() => {
+                // Success screen: ONLY "Back to Home" option remains
+                document.querySelector('.feedback-container').innerHTML = `
+                    <div style="font-size: 4rem; margin-bottom: 20px;">✨</div>
+                    <h1>Thank You!</h1>
+                    <p class="subtitle">Your feedback helps us make better coffee.</p>
+                    
+                    <div style="margin-top: 25px;">
+                        <button onclick="window.location.href='index.html'" class="auth-btn">🏠 Back to Home</button>
+                    </div>
+                `;
+            }).catch(err => {
+                console.error(err);
+                alert("Something went wrong. Please try again!");
+            });
+        };
+    </script>
+</body>
+</html>

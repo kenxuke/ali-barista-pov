@@ -4,47 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Confirmed | Ali's Barista POV</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/receipt.css">
     <style>
-        .receipt-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .paper-receipt {
-            background: #fdfdfd;
-            border: 1px solid #eee;
-            padding: 30px 20px;
-            font-family: 'Courier New', Courier, monospace;
-            text-align: left;
-            position: relative;
-        }
-        /* Perforated edge effect */
-        .paper-receipt::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 0;
+        .receipt-actions {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             width: 100%;
-            height: 10px;
-            background: linear-gradient(-45deg, transparent 5px, #fdfdfd 5px), 
-                        linear-gradient(45deg, transparent 5px, #fdfdfd 5px);
-            background-size: 10px 10px;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .receipt-line { border-bottom: 1px dashed #ccc; margin: 10px 0; }
-        .total-row { font-weight: bold; font-size: 1.2rem; text-align: right; margin-top: 15px; }
-        .back-btn {
-            margin-top: 40px;
-            display: inline-block;
-            padding: 12px 25px;
+        
+        .feedback-promo-btn {
             background: #6f4e37;
             color: white;
-            text-decoration: none;
-            border-radius: 25px;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(111, 78, 55, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .feedback-promo-btn:active { transform: scale(0.98); }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mini-back-btn {
+            background: white;
+            color: #6f4e37;
+            border: 1px solid #eee;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -56,16 +62,19 @@
         <div class="paper-receipt">
             <div style="text-align: center;">
                 <strong>ALI'S BARISTA POV</strong><br>
-                <small id="r-date"></small>
+                <small id="r-date">Loading...</small>
+                
+                <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                    <small style="letter-spacing: 1px;" id="r-id-label">ORDER ID</small>
+                    <span id="r-short-id" class="ticket-number">#----</span>
+                    <small style="color: #999; font-size: 0.6rem; display: block; word-break: break-all;" id="r-full-id"></small>
+                </div>
             </div>
             
             <div class="receipt-line"></div>
-            
-            <div id="r-items" style="white-space: pre-wrap; font-size: 0.9rem;"></div>
-            
+            <div id="r-items" style="font-size: 0.9rem; line-height: 1.6;"></div>
             <div class="receipt-line"></div>
-            
-            <div class="total-row" id="r-total"></div>
+            <div class="total-row" id="r-total">TOTAL: 0 💋</div>
             
             <div style="margin-top: 20px;">
                 <small><strong>NOTES:</strong></small><br>
@@ -73,21 +82,38 @@
             </div>
         </div>
 
-        <a href="index.html" class="back-btn">Order Another?</a>
+        <div class="receipt-actions">
+            <button id="receipt-feedback-btn" class="feedback-promo-btn">
+                ⭐ Rate Your Coffee
+            </button>
+
+            <div class="secondary-actions">
+                <button id="back-status-btn" class="mini-back-btn">Track Order</button>
+                <button id="finish-btn" class="mini-back-btn" style="background: #f8f9fa;">Order Another</button>
+            </div>
+        </div>
     </div>
 
+    <script type="module" src="js/receipt.js"></script>
     <script>
-        // Retrieve data from LocalStorage (set by the main page)
-        const lastOrder = JSON.parse(localStorage.getItem('lastOrder'));
+        // Quick logic for the new buttons
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('id');
+        const batchId = params.get('batch');
 
-        if (lastOrder) {
-            document.getElementById('r-date').textContent = lastOrder.date;
-            document.getElementById('r-items').textContent = lastOrder.details;
-            document.getElementById('r-total').textContent = `TOTAL: ${lastOrder.total}`;
-            document.getElementById('r-notes').textContent = lastOrder.notes || "None";
-        } else {
-            document.body.innerHTML = "<h2>No order found.</h2><a href='index.html'>Go Back</a>";
-        }
+        document.getElementById('receipt-feedback-btn').onclick = () => {
+            const identifier = orderId ? `orderId=${orderId}` : `batchId=${batchId}`;
+            window.location.href = `feedback.html?${identifier}`;
+        };
+
+        document.getElementById('back-status-btn').onclick = () => {
+            const target = orderId ? `id=${orderId}` : `batch=${batchId}`;
+            window.location.href = `status.html?${target}`;
+        };
+
+        document.getElementById('finish-btn').onclick = () => {
+            window.location.href = 'index.html';
+        };
     </script>
 </body>
 </html>

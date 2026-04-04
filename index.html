@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ali's Barista POV</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
        (function(){
-          emailjs.init("jxeeo0a_xFWGAzHFX"); // EmailJS Init
+          emailjs.init("jxeeo0a_xFWGAzHFX"); // Your EmailJS Init
        })();
     </script>
 </head>
@@ -21,66 +22,71 @@
         </header>
 
         <div class="temp-selection">
-            <label>1. Pick Temperature First</label>
-            <div class="temp-toggle">
+            <label>1. PICK TEMPERATURE FIRST</label>
+            <div class="temp-toggle highlight">
                 <button type="button" class="temp-btn" data-temp="Hot">☀️ Hot</button>
                 <button type="button" class="temp-btn" data-temp="Iced">❄️ Iced</button>
             </div>
+        </div>
+
+        <div class="menu-label">
+            <label>2. CHOOSE YOUR ESPRESSO BASED COFFEE</label>
         </div>
 
         <div class="coffee-grid" id="coffee-options">
             <div class="coffee-card disabled" data-value="Americano" data-price="1">
                 <div class="icon">☕</div>
                 <h3>Americano</h3>
-                <p>12g Double shot Espresso With Hot Water</p>
+                <p>bold & classic.</p>
                 <span class="price-tag">1 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Spanish Latte" data-price="3">
                 <div class="icon">🍯</div>
                 <h3>Spanish Latte</h3>
-                <p>20g Condensed Milk with Double Shot Espresso</p>
+                <p>sweet & creamy.</p>
                 <span class="price-tag">3 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Cappuccino" data-price="3">
                 <div class="icon">☁️</div>
                 <h3>Cappuccino</h3>
-                <p>1 10g Batangas Tablea with Double Shot Espresso</p>
+                <p>airy & deep.</p>
                 <span class="price-tag">3 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Latte" data-price="1">
                 <div class="icon">🥛</div>
                 <h3>Latte</h3>
-                <p>12g Espresso Shot with Milk</p>
+                <p>silky & smooth.</p>
                 <span class="price-tag">1 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Caramel Macchiato" data-price="3">
                 <div class="icon">🍮</div>
                 <h3>Caramel Macchiato</h3>
-                <p>Double Shot Espresso with Milk and Caramel Syrup</p>
+                <p>golden & layered.</p>
                 <span class="price-tag">3 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Biscoff Latte" data-price="5">
                 <div class="icon">🍪</div>
                 <h3>Biscoff Latte</h3>
-                <p>Lotus Biscoff with Milk and Double Shot Espresso</p>
+                <p>cookie bliss.</p>
                 <span class="price-tag">5 💋</span>
             </div>
 
             <div class="coffee-card disabled" data-value="Oat Latte" data-price="3">
                 <div class="icon">🌾</div>
                 <h3>Oat Latte</h3>
-                <p>Double Shot Espresso with Oat-side Milk</p>
+                <p>nutty & vegan.</p>
                 <span class="price-tag">3 💋</span>
             </div>
         </div>
 
         <div class="order-slip" id="order-slip">
             <div class="slip-header">ORDER SUMMARY</div>
+            <hr class="order-separator"> 
             <div id="slip-items">
                 <div class="empty-msg">Your tray is empty</div>
             </div>
@@ -88,13 +94,49 @@
         </div>
 
         <div class="input-group">
-            <label for="custom-notes">General Instructions</label>
+            <label for="custom-notes">GENERAL INSTRUCTIONS (OPTIONAL)</label>
             <textarea id="custom-notes" placeholder="e.g. Iced pero walang yelo"></textarea>
         </div>
 
         <button id="order-btn">Send Order</button>
+
+        <footer class="app-footer">
+            <p>&copy; Ven Sarmiento 2026</p>
+            <a href="barista.html" style="color: #a1887f; font-size: 0.7rem; text-decoration: none; margin-top: 10px; display: inline-block; opacity: 0.5;">
+                 Staff Login
+            </a>
+        </footer>
+    </div> 
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">☕</div>
+            <p id="modal-message">Message goes here</p>
+            <button onclick="window.closeModal()">Got it!</button>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <div id="shot-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">⚙️</div>
+            <h3 id="shot-modal-title">Select Shots</h3>
+            <p id="shot-modal-desc">How would you like your espresso?</p>
+            <div class="shot-options">
+                <button class="shot-btn" onclick="window.confirmShot('Single')">Single Shot</button>
+                <button class="shot-btn" onclick="window.confirmShot('Double')">Double Shot (+1 💋)</button>
+            </div>
+            <button class="cancel-btn" onclick="window.closeShotModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">⚖️</div>
+            <p id="info-message"></p>
+            <button onclick="window.proceedWithDoubleShot()">OK, noted!</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/script.js"></script>
 </body>
 </html>

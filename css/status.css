@@ -1,0 +1,62 @@
+.status-container { 
+    padding: 40px 20px; 
+    text-align: center; 
+    max-width: 500px; 
+    margin: 0 auto; 
+}
+
+.progress-container { 
+    background: #efebe9; 
+    border-radius: 20px; 
+    height: 12px; 
+    margin: 30px 0; 
+    overflow: hidden; 
+}
+
+#progress-bar { 
+    background: #6f4e37; 
+    width: 15%; 
+    height: 100%; 
+    transition: width 0.8s ease-in-out; 
+}
+
+.status-icon { 
+    font-size: 3rem; 
+    margin-bottom: 10px; 
+    display: block; 
+}
+
+#status-text { 
+    font-weight: 800; 
+    color: #3e2723; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
+
+#receipt-btn { 
+    display: none; 
+    margin-top: 20px; 
+    padding: 15px; 
+    background: #4caf50; 
+    color: white; 
+    border: none; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    width: 100%; 
+    font-weight: bold; 
+}
+
+#items-list { 
+    margin-top: 20px; 
+    text-align: left; 
+    font-size: 0.9rem; 
+    color: #5d4037; 
+    border-top: 1px dashed #d7ccc8; 
+    padding-top: 15px; 
+}
+
+.item-status-row { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 5px; 
+}

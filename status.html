@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status | Coffee Cart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/status.css">
+</head>
+<body>
+
+    <div class="status-container">
+        <div id="status-card">
+            <span class="status-icon" id="main-icon">📩</span>
+            <h2 id="status-text">Checking Order...</h2>
+            <p id="order-id-display" style="color: #a1887f; font-size: 0.8rem;"></p>
+
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+
+            <p id="status-desc">Looking for your drinks...</p>
+            
+            <div id="items-list"></div>
+
+            <div id="ready-actions" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #d7ccc8;">
+                <p style="font-size: 0.9rem; color: #6f4e37; margin-bottom: 10px;">Enjoying your drink?</p>
+                <button id="feedback-btn" style="background: #6f4e37; color: white; border: none; padding: 12px 20px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    Rate Your Coffee ☕
+                </button>
+            </div>
+
+            <button id="receipt-btn" style="margin-top: 15px;">View Order Receipt</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/status.js"></script>
+</body>
+</html>
