@@ -1,3 +1,4 @@
+/* Container and Layout */
 .status-container { 
     padding: 40px 20px; 
     text-align: center; 
@@ -5,25 +6,59 @@
     margin: 0 auto; 
 }
 
+/* Enhanced Progress Bar */
 .progress-container { 
     background: #efebe9; 
     border-radius: 20px; 
     height: 12px; 
     margin: 30px 0; 
     overflow: hidden; 
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
 #progress-bar { 
-    background: #6f4e37; 
+    background: linear-gradient(90deg, #6f4e37, #a67c52);
     width: 15%; 
     height: 100%; 
-    transition: width 0.8s ease-in-out; 
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
+    position: relative;
 }
 
+/* Pulsing effect to show the order is active */
+#progress-bar::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(
+        90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        rgba(255,255,255,0) 100%
+    );
+    animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Status Visuals */
 .status-icon { 
-    font-size: 3rem; 
+    font-size: 4rem; 
     margin-bottom: 10px; 
     display: block; 
+    transition: transform 0.3s ease;
+}
+
+/* Animation for when status becomes "Ready" */
+.ready-bounce {
+    animation: bounce 0.6s infinite alternate;
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
 }
 
 #status-text { 
@@ -31,32 +66,61 @@
     color: #3e2723; 
     text-transform: uppercase; 
     letter-spacing: 1px; 
+    font-size: 1.4rem;
+    margin-top: 10px;
 }
 
+.subtitle-text {
+    color: #8d6e63;
+    font-size: 0.95rem;
+    margin-top: 5px;
+}
+
+/* Buttons */
 #receipt-btn { 
     display: none; 
-    margin-top: 20px; 
-    padding: 15px; 
-    background: #4caf50; 
+    margin-top: 25px; 
+    padding: 18px; 
+    background: #2e7d32; /* Deeper professional green */
     color: white; 
     border: none; 
     border-radius: 12px; 
     cursor: pointer; 
     width: 100%; 
-    font-weight: bold; 
+    font-weight: 800; 
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+    transition: transform 0.2s, background 0.2s;
 }
 
+#receipt-btn:active {
+    transform: scale(0.98);
+    background: #1b5e20;
+}
+
+/* Items List */
 #items-list { 
-    margin-top: 20px; 
+    margin-top: 30px; 
     text-align: left; 
-    font-size: 0.9rem; 
+    font-size: 0.95rem; 
     color: #5d4037; 
     border-top: 1px dashed #d7ccc8; 
-    padding-top: 15px; 
+    padding-top: 20px; 
 }
 
 .item-status-row { 
     display: flex; 
     justify-content: space-between; 
-    margin-bottom: 5px; 
+    align-items: center;
+    margin-bottom: 10px; 
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #f3ece9;
+}
+
+.item-status-row strong {
+    color: #6f4e37;
+    font-size: 0.85rem;
+    text-transform: uppercase;
 }
