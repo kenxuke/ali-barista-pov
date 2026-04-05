@@ -25,11 +25,7 @@ if (!orderId && !batchId) {
     document.getElementById('status-desc').innerText = "No Order ID detected.";
 } else {
     document.getElementById('order-id-display').innerText = orderId ? `Order: ${orderId.slice(-4)}` : `Batch: ${batchId.slice(-4)}`;
-    
-    // Request permission is still good practice, 
-    // but JSInterface usually handles this natively in APKs
     requestNotificationPermission();
-
     checkLiveOrders();
 }
 
@@ -42,40 +38,44 @@ async function requestNotificationPermission() {
 }
 
 /**
- * UPDATED: notifyUser for Website 2 APK
- * Uses JSInterface to trigger native Android notifications.
+ * FIX: Safe Notification Trigger
+ * Decoupled from main UI logic to prevent crashes.
  */
 function notifyUser(status) {
+    // Only trigger logic if it's actually "Ready"
+    if (status !== "Ready") {
+        lastNotifiedStatus = status; // Track current non-ready status
+        return;
+    }
+
+    // Trigger only on the first instance of becoming "Ready"
     if (status === "Ready" && lastNotifiedStatus !== "Ready") {
         
-        // 1. Check for Website 2 APK Native Bridge
-        if (typeof JSInterface !== 'undefined') {
-            // Native Android Toast
-            JSInterface.showToast("Your coffee is ready for pickup! ☕");
+        try {
+            // 1. Web 2 APK Native Bridge
+            if (typeof JSInterface !== 'undefined') {
+                JSInterface.showToast("Your coffee is ready! ☕");
+                const msg = orderId ? `Order #${orderId.slice(-4)} is ready!` : "Your batch is ready!";
+                JSInterface.showNotification("Cloud Nine Coffee ✨", msg);
+            } 
+            // 2. Web Fallback
+            else if (Notification.permission === "granted") {
+                new Notification("Cloud Nine Coffee ☕", {
+                    body: "Your order is ready for pickup! ✨",
+                    icon: "assets/logo.png"
+                });
+            }
+
+            // 3. Audio Trigger
+            const audio = new Audio('assets/ready-chime.mp3');
+            audio.play().catch(() => console.log("Audio play deferred."));
             
-            // Native Status Bar Notification
-            const msg = orderId ? `Order #${orderId.slice(-4)} is ready!` : "Your batch is ready!";
-            JSInterface.showNotification("Cloud Nine Coffee ✨", msg);
-        } 
-        
-        // 2. Standard Web Notification Fallback
-        else if (Notification.permission === "granted") {
-            new Notification("Cloud Nine Coffee ☕", {
-                body: "Your order is ready for pickup! ✨",
-                icon: "assets/logo.png"
-            });
-        } 
-        
-        // 3. Simple Alert Fallback
-        else {
-            alert("✨ Your coffee is ready for pickup!");
+        } catch (err) {
+            console.error("Notification system failed:", err);
         }
 
-        // Trigger Sound
-        const audio = new Audio('assets/ready-chime.mp3');
-        audio.play().catch(e => console.log("Audio play blocked."));
+        lastNotifiedStatus = "Ready";
     }
-    lastNotifiedStatus = status;
 }
 
 function checkLiveOrders() {
@@ -130,7 +130,9 @@ function showArchivedUI(items) {
     document.getElementById('progress-bar').style.width = "100%";
     document.getElementById('main-icon').innerText = "✨";
     
-    document.getElementById('ready-actions').style.display = "none";
+    if(document.getElementById('ready-actions')) {
+        document.getElementById('ready-actions').style.display = "none";
+    }
 
     listContainer.innerHTML = "<strong>Order Summary:</strong><br>";
     items.forEach(item => {
@@ -169,7 +171,10 @@ function processBatchStatus(items) {
         (weights[prev.status] < weights[curr.status]) ? prev : curr
     );
 
+    // Run notification logic safely
     notifyUser(lowestStatusItem.status);
+    
+    // Always run UI update
     updateOverallUI(lowestStatusItem.status, avgWeight);
 }
 
@@ -179,25 +184,30 @@ function updateOverallUI(status, avgWeight) {
     const desc = document.getElementById('status-desc');
     const icon = document.getElementById('main-icon');
     const receiptBtn = document.getElementById('receipt-btn');
+    const readyActions = document.getElementById('ready-actions');
 
     text.innerText = status;
     const progressPercent = (avgWeight / 4) * 100;
     bar.style.width = `${progressPercent}%`;
 
+    // Ensure state reset
+    if (readyActions) readyActions.style.display = "none";
+    icon.classList.remove('ready-bounce');
+
     if (status === "Ready") {
         icon.innerText = "✨";
-        icon.classList.add('ready-bounce'); // Visual cue for the user
+        icon.classList.add('ready-bounce');
         desc.innerText = "Everything is ready for pickup!";
+        
+        // Final guard: Ensure button is visible
         receiptBtn.style.display = "block";
-        document.getElementById('ready-actions').style.display = "none";
 
         receiptBtn.onclick = () => {
             const target = orderId ? `id=${orderId}` : `batch=${batchId}`;
             window.location.href = `receipt.html?${target}`;
         };
     } else {
-        document.getElementById('ready-actions').style.display = "none";
-        icon.classList.remove('ready-bounce');
+        receiptBtn.style.display = "none";
         if (status === "Received") { icon.innerText = "📩"; desc.innerText = "Order sent to the Barista!"; }
         if (status === "Measuring") { icon.innerText = "⚖️"; desc.innerText = "Measuring out the beans..."; }
         if (status === "Brewing") { icon.innerText = "☕"; desc.innerText = "Your coffee is being brewed!"; }
