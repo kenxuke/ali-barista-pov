@@ -18,7 +18,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get('id');       
 const batchId = urlParams.get('batch');    
 
-// --- NEW: NOTIFICATION TRACKING ---
 let lastNotifiedStatus = ""; 
 
 if (!orderId && !batchId) {
@@ -27,13 +26,13 @@ if (!orderId && !batchId) {
 } else {
     document.getElementById('order-id-display').innerText = orderId ? `Order: ${orderId.slice(-4)}` : `Batch: ${batchId.slice(-4)}`;
     
-    // --- NEW: REQUEST PERMISSION ON LOAD ---
+    // Request permission is still good practice, 
+    // but JSInterface usually handles this natively in APKs
     requestNotificationPermission();
 
     checkLiveOrders();
 }
 
-// --- NEW: PERMISSION FUNCTION ---
 async function requestNotificationPermission() {
     if ("Notification" in window) {
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -42,23 +41,39 @@ async function requestNotificationPermission() {
     }
 }
 
-// --- NEW: TRIGGER NOTIFICATION ---
+/**
+ * UPDATED: notifyUser for Website 2 APK
+ * Uses JSInterface to trigger native Android notifications.
+ */
 function notifyUser(status) {
-    // Only notify if status changed to Ready and hasn't been notified yet
     if (status === "Ready" && lastNotifiedStatus !== "Ready") {
-        if (Notification.permission === "granted") {
+        
+        // 1. Check for Website 2 APK Native Bridge
+        if (typeof JSInterface !== 'undefined') {
+            // Native Android Toast
+            JSInterface.showToast("Your coffee is ready for pickup! ☕");
+            
+            // Native Status Bar Notification
+            const msg = orderId ? `Order #${orderId.slice(-4)} is ready!` : "Your batch is ready!";
+            JSInterface.showNotification("Cloud Nine Coffee ✨", msg);
+        } 
+        
+        // 2. Standard Web Notification Fallback
+        else if (Notification.permission === "granted") {
             new Notification("Cloud Nine Coffee ☕", {
                 body: "Your order is ready for pickup! ✨",
-                icon: "assets/logo.png" // Update with your actual logo path
+                icon: "assets/logo.png"
             });
-            
-            // Optional: Play a sound
-            const audio = new Audio('assets/ready-chime.mp3');
-            audio.play().catch(e => console.log("Audio play blocked until user interacts."));
-        } else {
-            // Fallback for no permissions
+        } 
+        
+        // 3. Simple Alert Fallback
+        else {
             alert("✨ Your coffee is ready for pickup!");
         }
+
+        // Trigger Sound
+        const audio = new Audio('assets/ready-chime.mp3');
+        audio.play().catch(e => console.log("Audio play blocked."));
     }
     lastNotifiedStatus = status;
 }
@@ -154,9 +169,7 @@ function processBatchStatus(items) {
         (weights[prev.status] < weights[curr.status]) ? prev : curr
     );
 
-    // --- TRIGGER NOTIFICATION CHECK ---
     notifyUser(lowestStatusItem.status);
-
     updateOverallUI(lowestStatusItem.status, avgWeight);
 }
 
@@ -173,6 +186,7 @@ function updateOverallUI(status, avgWeight) {
 
     if (status === "Ready") {
         icon.innerText = "✨";
+        icon.classList.add('ready-bounce'); // Visual cue for the user
         desc.innerText = "Everything is ready for pickup!";
         receiptBtn.style.display = "block";
         document.getElementById('ready-actions').style.display = "none";
@@ -183,6 +197,7 @@ function updateOverallUI(status, avgWeight) {
         };
     } else {
         document.getElementById('ready-actions').style.display = "none";
+        icon.classList.remove('ready-bounce');
         if (status === "Received") { icon.innerText = "📩"; desc.innerText = "Order sent to the Barista!"; }
         if (status === "Measuring") { icon.innerText = "⚖️"; desc.innerText = "Measuring out the beans..."; }
         if (status === "Brewing") { icon.innerText = "☕"; desc.innerText = "Your coffee is being brewed!"; }
